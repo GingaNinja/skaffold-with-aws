@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
     echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list && \
     apt-get update && \
-    apt-get install --no-install-recommends -y kubectl=1.18.* && \
+    apt-get install --no-install-recommends -y kubectl=1.21.* && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.2.9.zip" -o "awscliv2.zip" && unzip awscliv2.zip && \
