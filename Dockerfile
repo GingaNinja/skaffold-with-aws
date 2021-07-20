@@ -14,7 +14,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     rm -rf /var/lib/apt/lists/* && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.2.9.zip" -o "awscliv2.zip" && unzip awscliv2.zip && \
     echo 'c778f4cc55877833679fdd4ae9c94c07d0ac3794d0193da3f18cb14713af615f awscliv2.zip' | sha256sum -c - && \
-    curl -Lo skaffold "https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64"
+    curl -Lo skaffold "https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64" && \
+    curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
 
 
 FROM python:3.8-slim-buster
@@ -27,6 +28,7 @@ WORKDIR /
 COPY --from=build /usr/bin/kubectl /usr/bin
 COPY --from=build /aws aws
 COPY --from=build /skaffold skaffold
+COPY --from=build /kustomize /usr/bin
 RUN install ./skaffold /usr/local/bin && rm -rf skaffold
 RUN ./aws/install && rm -rf aws
 
