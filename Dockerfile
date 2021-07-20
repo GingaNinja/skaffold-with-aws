@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     apt-get update && \
     apt-get install --no-install-recommends -y kubectl=1.21.* && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
+    #rm -rf /var/lib/apt/lists/* && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.2.9.zip" -o "awscliv2.zip" && unzip awscliv2.zip && \
     echo 'c778f4cc55877833679fdd4ae9c94c07d0ac3794d0193da3f18cb14713af615f awscliv2.zip' | sha256sum -c - && \
     curl -Lo skaffold "https://storage.googleapis.com/skaffold/releases/latest/skaffold-linux-amd64" && \
@@ -29,6 +29,7 @@ COPY --from=build /usr/bin/kubectl /usr/bin
 COPY --from=build /aws aws
 COPY --from=build /skaffold skaffold
 COPY --from=build /kustomize /usr/bin
+RUN apt-get update && apt-get install --no-install-recommends -y git
 RUN install ./skaffold /usr/local/bin && rm -rf skaffold
 RUN ./aws/install && rm -rf aws
 
