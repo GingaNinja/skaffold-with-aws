@@ -32,7 +32,7 @@ COPY --from=build /aws aws
 COPY --from=build /skaffold skaffold
 COPY --from=build /kustomize /usr/bin
 COPY --from=build /usr/local/bin/terraform /usr/local/bin/terraform
-RUN apt-get update && apt-get install --no-install-recommends -y git
+RUN apt-get update && apt-get install --no-install-recommends -y git jq curl
 RUN install ./skaffold /usr/local/bin && rm -rf skaffold
 RUN ./aws/install && rm -rf aws
 
