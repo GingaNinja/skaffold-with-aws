@@ -1,16 +1,21 @@
-FROM python:3.8-slim-buster as build
+FROM ubuntu:16.04 as build
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apt-get update && apt-get install --no-install-recommends -y \
-    apt-transport-https=1.8.* \
-    gnupg=2.* \
-    curl=7.* \
-    unzip=6.* && \
-    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list && \
-    apt-get update && \
-    apt-get install --no-install-recommends -y kubectl=1.21.* && \
-    apt-get clean && \
+    ca-certificates \
+    apt-transport-https \
+    gnupg \
+    unzip \
+    ssh \
+    curl && \
+    # curl=7.* \
+    # unzip=6.* && \
+    # curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+    # echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list && \
+    # apt-get update && \
+    # apt-get install --no-install-recommends -y kubectl=1.21.* && \
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && \
+    # apt-get clean && \
     #rm -rf /var/lib/apt/lists/* && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.2.9.zip" -o "awscliv2.zip" && unzip awscliv2.zip && \
     echo 'c778f4cc55877833679fdd4ae9c94c07d0ac3794d0193da3f18cb14713af615f awscliv2.zip' | sha256sum -c - && \
@@ -20,19 +25,20 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     unzip terraform.zip && mv terraform /usr/local/bin/
 
 
-FROM python:3.8-slim-buster
+FROM ubuntu:16.04
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 WORKDIR /
 
 # copy kubectl cli binary and install aws cli v2
-COPY --from=build /usr/bin/kubectl /usr/bin
 COPY --from=build /aws aws
 COPY --from=build /skaffold skaffold
 COPY --from=build /kustomize /usr/bin
+COPY --from=build /kubectl kubectl
+RUN install -o root -g root -m 0755 ./kubectl /usr/local/bin/kubectl 
 COPY --from=build /usr/local/bin/terraform /usr/local/bin/terraform
-RUN apt-get update && apt-get install --no-install-recommends -y git jq curl
+RUN apt-get update && apt-get install --no-install-recommends -y git ssh jq curl
 RUN install ./skaffold /usr/local/bin && rm -rf skaffold
 RUN ./aws/install && rm -rf aws
 
