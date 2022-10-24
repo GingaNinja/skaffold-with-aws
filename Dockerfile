@@ -1,4 +1,4 @@
-FROM ubuntu:16.04 as build
+FROM --platform=linux/amd64 ubuntu:16.04 as build
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     gnupg \
     unzip \
     ssh \
-    curl && \
+    curl \ 
+    wget && \
     # curl=7.* \
     # unzip=6.* && \
     # curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
@@ -23,9 +24,11 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && \
     curl -Lo terraform.zip https://releases.hashicorp.com/terraform/1.0.5/terraform_1.0.5_linux_amd64.zip && \
     unzip terraform.zip && mv terraform /usr/local/bin/
+RUN wget https://github.com/Azure/kubelogin/releases/download/v0.0.20/kubelogin-linux-amd64.zip && \
+    unzip kubelogin-linux-amd64.zip 
 
 
-FROM ubuntu:16.04
+FROM --platform=linux/amd64 ubuntu:16.04
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -38,7 +41,9 @@ COPY --from=build /kustomize /usr/bin
 COPY --from=build /kubectl kubectl
 RUN install -o root -g root -m 0755 ./kubectl /usr/local/bin/kubectl 
 COPY --from=build /usr/local/bin/terraform /usr/local/bin/terraform
-RUN apt-get update && apt-get install --no-install-recommends -y git ssh jq curl
+COPY --from=build /bin/linux_amd64/kubelogin /usr/local/bin/kubelogin
+RUN apt-get update && apt-get install --no-install-recommends -y git ssh jq curl ca-certificates apt-transport-https
 RUN install ./skaffold /usr/local/bin && rm -rf skaffold
 RUN ./aws/install && rm -rf aws
+RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
